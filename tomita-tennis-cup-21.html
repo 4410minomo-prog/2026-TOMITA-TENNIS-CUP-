@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0e3d28" />
+<title>TOMITA TENNIS CUP</title>
+<style>
+  :root { --bg:#f3efe6; --card:#fffdf8; --ink:#1a2e26; --muted:#5e6f66; --line:#e5dccb; --green:#1b6b45; --green-d:#0e3d28; --shadow:0 10px 30px rgba(28,48,38,.08); }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif; background:radial-gradient(900px 420px at 100% -10%, rgba(240,201,61,.28), transparent 50%), var(--bg); color:var(--ink); }
+  button, input, select { font-family:inherit; }
+  button { cursor:pointer; }
+  .wrap { max-width:1080px; margin:0 auto; padding:20px 16px 96px; }
+  header.top { background:linear-gradient(145deg,#0e3d28,#1b6b45 70%); color:#f7f3ea; border-radius:28px; padding:22px; position:relative; overflow:hidden; }
+  header.top:after { content:""; position:absolute; width:180px; height:180px; border:14px solid rgba(240,201,61,.9); border-radius:50%; right:-40px; top:-50px; }
+  .kicker { letter-spacing:.18em; font-size:11px; opacity:.8; margin:0 0 6px; }
+  h1 { margin:0; font-size:28px; }
+  .sub, .note { color:var(--muted); font-size:13px; line-height:1.65; }
+  header .sub { color:rgba(247,243,234,.84); }
+  h2 { margin:0 0 8px; font-size:18px; }
+  h3 { margin:0 0 8px; font-size:15px; }
+  nav.tabs, .bottom { display:flex; gap:8px; justify-content:flex-start; } nav.tabs button[data-tab="setup"], .bottom button[data-tab="setup"] { margin-left:auto; }
+  nav.tabs { margin:16px 0; overflow:auto; }
+  nav.tabs button, .btn, .btn.secondary, .btn.ghost { border-radius:12px; font-weight:800; }
+  nav.tabs button { border:1px solid var(--line); background:var(--card); padding:10px 14px; white-space:nowrap; }
+  nav.tabs button.on { background:var(--green-d); color:white; border-color:var(--green-d); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; box-shadow:var(--shadow); margin-bottom:14px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  label.field { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted); font-weight:700; }
+  input, select, textarea { border:1px solid var(--line); background:#fff; border-radius:12px; padding:10px 12px; font-size:15px; width:100%; color:var(--ink); }
+  .btn { border:0; padding:11px 14px; background:var(--green); color:white; }
+  .btn.secondary { background:#efe8da; color:var(--ink); }
+  .btn.ghost { background:transparent; color:var(--green-d); border:1px solid var(--line); }
+  .btn.small { padding:8px 10px; font-size:13px; }
+  .player-line { display:grid; grid-template-columns:42px 1fr auto; gap:8px; align-items:center; margin-bottom:8px; }
+  .badge { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:#eef6f1; color:var(--green-d); font-weight:800; }
+  .court { border:1px solid var(--line); border-radius:16px; padding:12px; background:linear-gradient(#fff,#f7fbf8); }
+  .pair { background:#f6f1e6; border-radius:12px; padding:8px 10px; font-weight:800; }
+  .pair small, .vs { display:block; color:var(--muted); font-size:12px; font-weight:700; }
+  .vs { text-align:center; letter-spacing:.14em; margin:6px 0; }
+  .scoreline { font-weight:900; color:var(--green-d); }
+  .ok { background:#eef6f1; color:var(--green-d); border-radius:12px; padding:10px 12px; font-size:13px; }
+  .warn { background:#fff4e8; border:1px solid #f0d7bf; color:#7a4324; border-radius:12px; padding:10px 12px; font-size:13px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th { font-size:12px; color:var(--muted); }
+  .top3 td { background:#fff8df; }
+  .modal-back { position:fixed; inset:0; background:rgba(14,34,26,.46); display:none; align-items:end; justify-content:center; z-index:20; }
+  .modal-back.show { display:flex; }
+  .modal { background:var(--card); width:min(640px,100%); max-height:92vh; overflow:auto; border-radius:22px 22px 0 0; padding:16px 16px 24px; }
+  .stepper { display:flex; align-items:center; gap:8px; }
+  .stepper button { width:40px; height:40px; border-radius:12px; border:1px solid var(--line); background:white; font-size:20px; font-weight:800; }
+  .hold-row { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:8px; align-items:center; padding:8px 0; border-top:1px solid var(--line); }
+  .hide { display:none !important; }
+  .bottom { position:fixed; left:0; right:0; bottom:0; background:rgba(255,253,248,.94); border-top:1px solid var(--line); justify-content:flex-start; padding:8px 6px calc(8px + env(safe-area-inset-bottom)); z-index:10; }
+  .bottom button { border:0; background:transparent; color:var(--muted); font-size:11px; font-weight:800; }
+  .bottom button.on { color:var(--green-d); }
+  @media (min-width:800px) { .modal-back { align-items:center; } .modal { border-radius:22px; } .bottom { display:none; } .players { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; } }
+  @media (max-width:720px) { .grid2, .grid3 { grid-template-columns:1fr; } h1 { font-size:24px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="kicker">DOUBLES TOURNAMENT</p>
+    <h1>TOMITA TENNIS CUP</h1>
+    <p class="sub">名前を選んで、開始して、終わったら結果を入れるだけです。</p>
+  </header>
+  <nav class="tabs" id="tabs">
+    <button data-tab="draw">試合</button>
+    <button data-tab="results">結果</button>
+    <button data-tab="setup" class="on">準備</button>
+  </nav>
+
+  <section id="tab-setup">
+    <div class="card">
+      <h2>1. 名前とコート数</h2>
+      <p class="note">名前を入れて、コート数を選び、「対戦表を作る」を押します。空欄は使いません。</p>
+      <div class="grid2" style="margin-top:12px">
+        <label class="field">コート面数<input id="courtCount" type="number" min="1" max="8" value="3" /></label>
+        <label class="field">ラウンド数<select id="roundCount"><option value="0">自動</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select></label>
+      </div>
+      <details style="margin-top:10px"><summary class="note">時間の設定</summary>
+      <div class="grid2" style="margin-top:8px">
+        <label class="field">開始時刻<input id="startTime" type="time" value="12:00" /></label>
+        <label class="field">1試合の目安（分）<input id="slotMin" type="number" min="15" max="60" value="30" /></label>
+        <label class="field">確保の終了<input id="reserveEnd" type="time" value="16:00" /></label>
+        <label class="field">終了見込み<input id="endPreview" type="text" value="組合せ後に計算" disabled /></label>
+      </div></details>
+      <div class="row" style="margin:12px 0">
+        <button class="btn" id="genDraw">対戦表を作る</button>
+        <button class="btn secondary" id="addPlayer">参加者を追加</button>
+        <button class="btn ghost" id="fillSample">仮名を入れる</button>
+      </div>
+      <div id="setupMeta"></div>
+      <div class="players" id="playerList"></div>
+    </div>
+    <div class="card">
+      <h2>2. みんなに渡す</h2>
+      <p class="note">部屋を作って、出た4文字を送ります。参加者は同じページを開き、コードを入れて参加します。</p>
+      <div class="row">
+        <button class="btn small" id="makeRoom">部屋を作る</button>
+        <input id="roomCodeInput" type="text" placeholder="コード" style="max-width:120px" />
+        <button class="btn secondary small" id="joinRoom">参加する</button>
+        <button class="btn ghost small" id="exportHtml">HTMLを書き出す</button>
+      </div>
+      <p class="note" id="roomStatus">まだ同じ画面にはなっていません。</p>
+    </div>
+  </section>
+
+  <section id="tab-draw" class="hide"><div id="drawBox"></div></section>
+  <section id="tab-next" class="hide">
+    <div class="card">
+      <div class="row">
+        <label class="field">いまのラウンド<select id="nowRound"></select></label>
+        <label class="field">自分の名前<select id="mePick"></select></label>
+      </div>
+      <div id="nextBox"></div>
+    </div>
+  </section>
+  <section id="tab-results" class="hide"><div id="resultBox"></div></section>
+  <section id="tab-rank" class="hide"><div id="rankBox"></div></section>
+</div>
+<nav class="bottom" id="bottom">
+  <button data-tab="draw">試合</button>
+  <button data-tab="results">結果</button>
+  <button data-tab="setup" class="on">準備</button>
+</nav>
+<p class="note" style="text-align:right;margin:8px 16px 28px"><button class="btn ghost small" data-tab="rank">順位を見る</button></p>
+<div class="modal-back" id="modalBack"><div class="modal" id="modal"></div></div>
+<script type="application/json" id="boot-data">null</script>
+<script>
+const STORAGE_KEY = "tomita-tennis-cup-v2";
+let seq = 21;
+function defaultState() {
+  return {
+    courts: 3, startTime: "12:00", slotMin: 30, reserveEnd: "16:00", roundCount: 0, nowRound: 1, meId: "", rankMode: "best", bestN: 3,
+    players: Array.from({length:21}, (_,i)=>({id:"p"+(i+1), name:"", lot:null})),
+    rounds: [], quality: null, updatedAt: Date.now()
+  };
+}
+let state = defaultState();
+const room = { peer:null, conns:[], role:"", code:"", timer:0 };
+function load() {
+  try {
+    const boot = JSON.parse(document.getElementById("boot-data").textContent || "null");
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = Object.assign(defaultState(), JSON.parse(raw));
+    else if (boot && boot.players) state = Object.assign(defaultState(), boot);
+  } catch (e) { state = defaultState(); }
+  seq = state.players.reduce((m,p)=>Math.max(m, Number(String(p.id).replace(/\D/g,""))||0), 21);
+}
+function saveLocalOnly() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function save() { state.updatedAt = Date.now(); saveLocalOnly(); clearTimeout(room.timer); room.timer = setTimeout(pushSync, 250); }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => c==="&"?"&"+"amp;":c==="<"?"&"+"lt;":c===">"?"&"+"gt;":c==='"'?"&"+"quot;":"&#39;"); }
+function nameOf(id) { const p = state.players.find(x=>x.id===id); return (p&&p.name.trim())||"無名"; }
+function addMin(hhmm, min) { const [h,m]=hhmm.split(":").map(Number); const t=h*60+m+min; return String(Math.floor(t/60)%24).padStart(2,"0")+":"+String(t%60).padStart(2,"0"); }
+function courtName(i) { return String.fromCharCode(65+i)+"コート"; }
+function pairLabel(ids) { return ids.map(nameOf).join(" / "); }
+function matchList() { return state.rounds.flat(); }
+function namedPlayers() { return state.players.filter(p => (p.name || "").trim()); }
+function planCounts() {
+  const courts = Math.max(1, Number(state.courts)||1);
+  const n = namedPlayers().length;
+  const per = courts*4;
+  if (n < per) return { error: "参加者が足りません。"+courts+"面には最低"+per+"人必要です。" };
+  const chosen = Number(state.roundCount) || 0;
+  if (chosen > 0) {
+    const slots = chosen * per;
+    const target = Math.floor(slots / n);
+    const max = Math.ceil(slots / n);
+    if (target < 1) return { error: "ラウンドが少なすぎます。名前のある全員が1試合できる数にしてください。" };
+    return { courts, per, target, rounds: chosen, uneven: max !== target, max, manual: true };
+  }
+  for (let target=3; target<=6; target++) if ((n*target)%per===0) return { courts, per, target, rounds:n*target/per, manual: false };
+  const rounds = Math.ceil(n*3/per);
+  return { courts, per, target:3, rounds, uneven:true, max:4, manual: false };
+}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296}}
+function generateDraw(seed) {
+  const cfg = planCounts();
+  if (cfg.error) return { error: cfg.error };
+  const rand = mulberry32(seed);
+  const ids = namedPlayers().map(p=>p.id);
+  const n = ids.length, max = cfg.uneven ? cfg.max : cfg.target;
+  const index = {}; ids.forEach((id,i)=>index[id]=i);
+  function attempt() {
+    const played = Array(n).fill(0), last = Array(n).fill(-9);
+    const partners = Array.from({length:n},()=>new Set());
+    const opps = Array.from({length:n},()=>new Set());
+    const plan = [];
+    for (let r=0;r<cfg.rounds;r++) {
+      const remain = cfg.rounds-r, must=[], flex=[];
+      ids.forEach((id,i)=>{
+        if (played[i]>=max) return;
+        if (played[i]+remain<=cfg.target) must.push(id); else flex.push(id);
+      });
+      if (must.length>cfg.per) return null;
+      flex.sort((a,b)=>{ const ia=index[a], ib=index[b]; const ca=last[ia]===r-1?1:0, cb=last[ib]===r-1?1:0; if(ca!==cb) return ca-cb; if(played[ia]!==played[ib]) return played[ia]-played[ib]; return rand()-0.5; });
+      const chosen = must.slice();
+      for (const id of flex) { if (chosen.length>=cfg.per) break; chosen.push(id); }
+      if (chosen.length<cfg.per) return null;
+      let group = chosen.slice();
+      for (let i=group.length-1;i>0;i--) { const j=Math.floor(rand()*(i+1)); [group[i],group[j]]=[group[j],group[i]]; }
+      const sat = group.filter(id => last[index[id]] !== r-1);
+      const back = group.filter(id => last[index[id]] === r-1);
+      const ordered = sat.concat(back);
+      let blocks = Array.from({length:cfg.courts},(_,k)=>ordered.slice(k*4,k*4+4));
+      const splitCost = four => {
+        const splits = [[[four[0],four[1]],[four[2],four[3]]],[[four[0],four[2]],[four[1],four[3]]],[[four[0],four[3]],[four[1],four[2]]]];
+        let best=Infinity, bestSplit=splits[0];
+        for (const sp of splits) {
+          let c=0;
+          for (const pair of sp) if (partners[index[pair[0]]].has(pair[1])) c+=30;
+          for (const x of sp[0]) for (const y of sp[1]) if (opps[index[x]].has(y)) c+=6;
+          if (c<best) { best=c; bestSplit=sp; }
+        }
+        return {cost:best, split:bestSplit};
+      };
+      const total = arr => arr.reduce((s,f)=>s+splitCost(f).cost,0);
+      let cost = total(blocks);
+      for (let iter=0; iter<80; iter++) {
+        const c1=Math.floor(rand()*cfg.courts), c2=Math.floor(rand()*cfg.courts);
+        if (c1===c2) continue;
+        const A=blocks[c1].slice(), B=blocks[c2].slice();
+        const i1=Math.floor(rand()*4), i2=Math.floor(rand()*4);
+        [A[i1],B[i2]]=[B[i2],A[i1]];
+        const trial=blocks.slice(); trial[c1]=A; trial[c2]=B;
+        const nc=total(trial);
+        if (nc<=cost) { blocks[c1]=A; blocks[c2]=B; cost=nc; }
+      }
+      const matches = blocks.map((four,ci)=>{
+        const sp = splitCost(four).split;
+        return { id:"r"+(r+1)+"c"+(ci+1), round:r+1, order:r*10+ci, court:null, teamA:sp[0].slice(), teamB:sp[1].slice(), gamesA:null, gamesB:null, minutes:null, holds:{}, status:"wait", updatedAt:0 };
+      });
+      matches.forEach(m=>{
+        [...m.teamA,...m.teamB].forEach(id=>{ played[index[id]]++; last[index[id]]=r; });
+        partners[index[m.teamA[0]]].add(m.teamA[1]); partners[index[m.teamA[1]]].add(m.teamA[0]);
+        partners[index[m.teamB[0]]].add(m.teamB[1]); partners[index[m.teamB[1]]].add(m.teamB[0]);
+        for (const x of m.teamA) for (const y of m.teamB) { opps[index[x]].add(y); opps[index[y]].add(x); }
+      });
+      plan.push(matches);
+    }
+    if (played.some(p=>p<cfg.target)) return null;
+    let partnerRep=0, oppRep=0, consec=0;
+    const seenP={}, seenO={}, prev={};
+    ids.forEach(id=>{ seenP[id]={}; seenO[id]={}; prev[id]=-9; });
+    plan.forEach((round,r)=>round.forEach(m=>{
+      [...m.teamA,...m.teamB].forEach(id=>{ if(prev[id]===r-1) consec++; prev[id]=r; });
+      const bump=(map,a,b)=>{ map[a][b]=(map[a][b]||0)+1; };
+      bump(seenP,m.teamA[0],m.teamA[1]); bump(seenP,m.teamA[1],m.teamA[0]);
+      bump(seenP,m.teamB[0],m.teamB[1]); bump(seenP,m.teamB[1],m.teamB[0]);
+      for (const x of m.teamA) for (const y of m.teamB) { bump(seenO,x,y); bump(seenO,y,x); }
+    }));
+    ids.forEach(id=>{ Object.values(seenP[id]).forEach(v=>{ if(v>1) partnerRep+=v-1; }); Object.values(seenO[id]).forEach(v=>{ if(v>1) oppRep+=v-1; }); });
+    return { rounds:plan, quality:{ partnerRep:partnerRep/2, oppRep:oppRep/2, consec, target:cfg.target, rounds:cfg.rounds } };
+  }
+  let best=null, bestScore=Infinity;
+  for (let i=1;i<=30;i++) {
+    const g = attempt();
+    if (!g) continue;
+    const score = g.quality.partnerRep*100 + g.quality.oppRep*10 + g.quality.consec;
+    if (score<bestScore) { best=g; bestScore=score; }
+    if (g.quality.partnerRep===0 && g.quality.oppRep===0) break;
+  }
+  return best || { error:"組合せを作れませんでした。人数か面数を変えてください。" };
+}
+function slotMinutes() { return Number(state.slotMin) || 30; }
+function endTime() {
+  const latest = latestProjected();
+  if (latest) return latest;
+  const rounds = state.rounds.length || (planCounts().rounds || 0);
+  if (!rounds) return "未計算";
+  return addMin(state.startTime || "12:00", rounds * slotMinutes());
+}
+function roundClock(n) {
+  const start = addMin(state.startTime || "12:00", (n - 1) * slotMinutes());
+  return { start, end: addMin(start, slotMinutes()) };
+}
+function projectedMap() {
+  const map = {};
+  const courts = Number(state.courts) || 1;
+  for (let c = 1; c <= courts; c++) {
+    let cursor = state.startTime || "12:00";
+    state.rounds.forEach(round => {
+      const m = round.find(x => x.court === c);
+      if (!m) return;
+      const known = m.minutes != null && m.minutes !== "";
+      const mins = known ? Number(m.minutes) : slotMinutes();
+      const start = cursor;
+      const end = addMin(start, mins);
+      map[m.id] = { start, end, estimated: !known, minutes: mins };
+      cursor = end;
+    });
+  }
+  return map;
+}
+function matchClock(m) { return projectedMap()[m.id] || roundClock(m.round); }
+function latestProjected() {
+  const map = projectedMap();
+  const ends = Object.values(map).map(x => x.end);
+  if (!ends.length) return "";
+  return ends.sort().slice(-1)[0];
+}
+function overReserve(hhmm) {
+  const limit = state.reserveEnd || "16:00";
+  return hhmm > limit;
+}
+function recordOf(id,m) {
+  if (m.gamesA==null || m.gamesB==null) return null;
+  const inA = m.teamA.includes(id);
+  const gf = inA?m.gamesA:m.gamesB, ga = inA?m.gamesB:m.gamesA;
+  const h = m.holds[id]||{sv:0,kp:0};
+  return { win:gf>ga?1:gf<ga?0:0.5, gf, ga, diff:gf-ga, sv:h.sv||0, kp:h.kp||0 };
+}
+function allRecords(id) {
+  return matchList().filter(m=>m.teamA.includes(id)||m.teamB.includes(id)).map(m=>recordOf(id,m)).filter(Boolean);
+}
+function pickRecords(id) {
+  const recs = allRecords(id);
+  const mode = state.rankMode || "best";
+  const n = Number(state.bestN) || 3;
+  if (mode === "all" || mode === "rate" || mode === "diff" || mode === "hold" || mode === "points") return recs;
+  if (mode === "recent") return recs.slice(-Math.min(n, recs.length));
+  const rankedRecs = recs.slice().sort((a,b)=>b.win-a.win||b.diff-a.diff||b.gf-a.gf);
+  if (mode === "drop") return rankedRecs.slice(0, Math.max(recs.length-1, 0));
+  return rankedRecs.slice(0, n);
+}
+function summary(id) {
+  const top = pickRecords(id);
+  const wins = top.reduce((s,r)=>s+r.win,0), gf=top.reduce((s,r)=>s+r.gf,0), ga=top.reduce((s,r)=>s+r.ga,0);
+  const sv=top.reduce((s,r)=>s+r.sv,0), kp=top.reduce((s,r)=>s+r.kp,0);
+  const minutes = matchList().filter(m=>(m.teamA.includes(id)||m.teamB.includes(id)) && m.minutes!=null).reduce((s,m)=>s+Number(m.minutes||0),0);
+  const rate = sv ? kp/sv : null;
+  const points = wins*3 + top.filter(r=>r.win===0.5).length + (gf-ga) + (rate==null?0:rate*2);
+  return { wins, losses:top.length-wins, diff:gf-ga, sv, kp, rate, entered:top.length, minutes, points, rateOnly: top.length?wins/top.length:null };
+}
+function ranked() {
+  const mode = state.rankMode || "best";
+  return namedPlayers().map(p=>({p,s:summary(p.id)})).sort((a,b)=>{
+    if (b.s.entered !== a.s.entered && mode !== "rate") return b.s.entered - a.s.entered;
+    if (mode === "rate") return (b.s.rateOnly??-1)-(a.s.rateOnly??-1) || b.s.diff-a.s.diff || (b.s.rate??-1)-(a.s.rate??-1);
+    if (mode === "diff") return b.s.diff-a.s.diff || b.s.wins-a.s.wins || (b.s.rate??-1)-(a.s.rate??-1);
+    if (mode === "hold") return (b.s.rate??-1)-(a.s.rate??-1) || b.s.wins-a.s.wins || b.s.diff-a.s.diff;
+    if (mode === "points") return b.s.points-a.s.points || b.s.wins-a.s.wins;
+    return b.s.wins-a.s.wins || b.s.diff-a.s.diff || (b.s.rate??-1)-(a.s.rate??-1);
+  });
+}
+function rankNote() {
+  const n = Number(state.bestN)||3;
+  const notes = {
+    best: "成績のよい"+n+"試合だけを採用。勝数、得失ゲーム、キープ率の順。",
+    all: "入力済みの全試合を合計。勝数、得失ゲーム、キープ率の順。",
+    drop: "いちばん悪い1試合を除いた残りで計算。",
+    recent: "直近"+n+"試合の調子で計算。",
+    rate: "勝率が高い順。試合数が違っても比べられます。",
+    diff: "得失ゲームが大きい順。接戦を拾った人が上がります。",
+    hold: "サービスキープ率が高い順。サーブ回が多いほど信頼できます。",
+    points: "勝ち3点、分け1点、得失ゲーム1点、キープ率も加点する大会ポイント。"
+  };
+  return notes[state.rankMode || "best"];
+}
+function setTab(tab) {
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on", b.dataset.tab===tab));
+  ["setup","draw","next","results","rank"].forEach(name=>document.getElementById("tab-"+name).classList.toggle("hide", name!==tab));
+  if (tab==="draw") renderDraw();
+  if (tab==="next") renderNext();
+  if (tab==="results") renderResults();
+  if (tab==="rank") renderRank();
+}
+function renderPlayers() {
+  document.getElementById("playerList").innerHTML = state.players.map((p,i)=>`<div class="player-line"><div class="badge">${i+1}</div><input data-player="${p.id}" value="${escapeHtml(p.name)}" placeholder="参加者${i+1}" /><button class="btn ghost small" data-remove="${p.id}">外す</button></div>`).join("");
+  const cfg = planCounts();
+  document.getElementById("setupMeta").innerHTML = cfg.error ? `<div class="warn">${cfg.error}</div>` : `<div class="ok">名前あり ${namedPlayers().length}人 / ${state.courts}面 / ${cfg.manual?"指定":"自動"}${cfg.rounds}ラウンド。1ラウンド${cfg.per}人出場、${namedPlayers().length-cfg.per}人控え。空欄は計算しません。各人${cfg.target}${cfg.max&&cfg.max!==cfg.target?"〜"+cfg.max:""}試合。開始 ${state.startTime}、確保は ${state.reserveEnd} まで。1試合 ${slotMinutes()} 分で終了見込み ${endTime()}。</div>`;
+  document.getElementById("endPreview").value = endTime();
+}
+function queueMatches() { return matchList().slice().sort((a,b)=>(a.order??a.round)-(b.order??b.round)); }
+function assignFreedCourt(court) {
+  const busy = new Set();
+  matchList().filter(m=>m.court && !matchDone(m)).forEach(m=>[...m.teamA,...m.teamB].forEach(id=>busy.add(id)));
+  const next = queueMatches().find(m=>!m.court && !matchDone(m) && [...m.teamA,...m.teamB].every(id=>!busy.has(id)));
+  if (!next) return;
+  next.court = court; next.status = "live"; next.updatedAt = Date.now();
+}
+function matchDone(m) { return m.gamesA != null || m.status === "done"; }
+function isLive(m) { return m.status === "live" && !matchDone(m); }
+function playerLive(id) { return matchList().some(m => isLive(m) && (m.teamA.includes(id) || m.teamB.includes(id))); }
+function earlierOpen(id, m) { return matchList().some(x => x.id !== m.id && !matchDone(x) && (x.order||0) < (m.order||0) && (x.teamA.includes(id) || x.teamB.includes(id))); }
+function matchReady(m) {
+  if (matchDone(m) || isLive(m)) return false;
+  return [...m.teamA, ...m.teamB].every(id => !playerLive(id) && !earlierOpen(id, m));
+}
+function lastFinish(id) {
+  const done = matchList().filter(m => matchDone(m) && (m.teamA.includes(id) || m.teamB.includes(id)));
+  if (!done.length) return 0;
+  return Math.max(...done.map(m => m.finishedAt || m.updatedAt || 0));
+}
+function priorityOf(m) {
+  const waits = [...m.teamA, ...m.teamB].map(lastFinish);
+  return Math.max(...waits);
+}
+function readySorted() { return matchList().filter(matchReady).sort((a,b)=>priorityOf(a)-priorityOf(b) || (a.order||0)-(b.order||0)); }
+function waitingReason(m) {
+  const names = [...m.teamA, ...m.teamB].filter(id => playerLive(id) || earlierOpen(id, m));
+  return names.map(nameOf);
+}
+function freeCourt() {
+  const used = new Set(matchList().filter(isLive).map(m => m.court).filter(Boolean));
+  for (let c = 1; c <= (Number(state.courts) || 1); c++) if (!used.has(c)) return c;
+  return null;
+}
+function pairKey(a,b){ return [a,b].sort().join("|"); }
+function drawProblems(matches){
+  const count = {}, partners = new Set(), opps = new Set();
+  let partnerRep = 0, oppRep = 0;
+  matches.forEach(m => {
+    [...m.teamA, ...m.teamB].forEach(id => count[id] = (count[id]||0)+1);
+    [[m.teamA[0], m.teamA[1]], [m.teamB[0], m.teamB[1]]].forEach(pair => {
+      const k = pairKey(pair[0], pair[1]);
+      if (partners.has(k)) partnerRep++; else partners.add(k);
+    });
+    m.teamA.forEach(a => m.teamB.forEach(b => {
+      const k = pairKey(a,b);
+      if (opps.has(k)) oppRep++; else opps.add(k);
+    }));
+  });
+  const vals = Object.values(count);
+  return { partnerRep, oppRep, spread: vals.length ? Math.max(...vals)-Math.min(...vals) : 0 };
+}
+function cloneMatches(){ return matchList().map(m => ({...m, teamA:m.teamA.slice(), teamB:m.teamB.slice()})); }
+function fillFour(){
+  const base = cloneMatches();
+  const waiting = base.filter(m => !matchDone(m) && !isLive(m));
+  const free = namedPlayers().map(p=>p.id).filter(id => !playerLive(id) && waiting.some(m => m.teamA.includes(id)||m.teamB.includes(id)));
+  const slot = waiting[0];
+  if (!slot) return null;
+  let best = null;
+  for (let i=0;i<free.length;i++) for (let j=i+1;j<free.length;j++) for (let k=j+1;k<free.length;k++) for (let n=k+1;n<free.length;n++) {
+    const four = [free[i], free[j], free[k], free[n]];
+    if (four.some(id => slot.teamA.includes(id) || slot.teamB.includes(id))) continue;
+    const pairs = [[four[0],four[1],four[2],four[3]],[four[0],four[2],four[1],four[3]],[four[0],four[3],four[1],four[2]]];
+    for (const choice of pairs) {
+      const trial = cloneMatches();
+      const tslot = trial.find(m => m.id === slot.id);
+      const displaced = [...tslot.teamA, ...tslot.teamB];
+      let ok = true;
+      choice.forEach((id, idx) => {
+        const home = trial.find(m => m.id !== tslot.id && !matchDone(m) && !isLive(m) && (m.teamA.includes(id)||m.teamB.includes(id)));
+        if (!home) { ok = false; return; }
+        const side = home.teamA.includes(id) ? "teamA" : "teamB";
+        home[side] = home[side].map(x => x===id ? displaced[idx] : x);
+      });
+      if (!ok) continue;
+      tslot.teamA = [choice[0], choice[1]];
+      tslot.teamB = [choice[2], choice[3]];
+      const problem = drawProblems(trial);
+      if (problem.partnerRep || problem.spread > 1) continue;
+      if (!best || problem.oppRep < best.oppRep) best = { teamA: tslot.teamA.slice(), teamB: tslot.teamB.slice(), oppRep: problem.oppRep, trial };
+      if (best && best.oppRep === 0) return best;
+    }
+  }
+  return best;
+}
+function adoptFill(){
+  const sug = fillFour();
+  if (!sug) return alert("試合数を崩さず、同じペアにならない組み替えが見つかりません。");
+  sug.trial.forEach(src => {
+    const m = matchList().find(x => x.id === src.id);
+    m.teamA = src.teamA.slice();
+    m.teamB = src.teamB.slice();
+    m.holds = {};
+    m.updatedAt = Date.now();
+  });
+  save();
+  renderDraw();
+}
+function endMatch(id) {
+  const m = matchList().find(x => x.id === id);
+  if (!m || matchDone(m)) return;
+  m.status = "done";
+  m.finishedAt = Date.now();
+  if (m.startedAt && m.minutes == null) m.minutes = Math.max(1, Math.round((Date.now() - m.startedAt) / 60000));
+  m.updatedAt = Date.now();
+  save();
+  renderDraw();
+  renderResults();
+}
+function beginCount() {
+  if (!state.rounds.length) return alert("先に対戦表を作ってください。");
+  const live = matchList().filter(isLive);
+  if (!live.length) return alert("いま入っている初戦がありません。対戦表を作り直してください。");
+  const now = Date.now();
+  state.cupStarted = now;
+  live.forEach(m => { if (!m.startedAt) { m.startedAt = now; m.updatedAt = now; } });
+  save();
+  renderDraw();
+}
+function startMatch(id) {
+  if (!state.cupStarted) return alert("先に「カウント開始」を押してください。");
+  const m = matchList().find(x => x.id === id);
+  if (!m || matchDone(m) || isLive(m)) return;
+  const busy = [...m.teamA, ...m.teamB].filter(playerLive);
+  if (busy.length) return alert(busy.map(nameOf).join("、")+" はいま別の試合中です。");
+  const court = freeCourt();
+  if (!court) return alert("空いているコートがありません。");
+  m.status = "live";
+  m.court = court;
+  m.startedAt = Date.now();
+  m.updatedAt = Date.now();
+  save();
+  renderDraw();
+  renderResults();
+}
+function elapsedText(ms) {
+  const sec = Math.max(0, Math.floor(ms / 1000));
+  return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+}
+function renderDraw() {
+  const box = document.getElementById("drawBox");
+  if (!state.rounds.length) { box.innerHTML = `<div class="card"><div class="warn">まだ対戦表がありません。設定で参加者を入れて「対戦表を作る」を押してください。</div></div>`; return; }
+  const q = state.quality || {};
+  const live = matchList().filter(isLive);
+  const next = readySorted();
+  const waiting = matchList().filter(m => !matchDone(m) && !isLive(m) && !matchReady(m));
+  const done = matchList().filter(matchDone);
+  const busy = new Set(live.flatMap(m => [...m.teamA, ...m.teamB]));
+  const nextIds = new Set(next.slice(0, Number(state.courts)||1).flatMap(m => [...m.teamA, ...m.teamB]));
+  const rest = namedPlayers().filter(p => !busy.has(p.id) && !nextIds.has(p.id));
+  const card = m => `<div class="court" style="${mineCard(m)?"background:#fff4cc":""}"><div class="note">${m.court&&(isLive(m)||matchDone(m))?courtName(m.court-1):""}${isLive(m)?` <b class="elapsed" data-since="${m.startedAt||Date.now()}">${elapsedText(Date.now()-(m.startedAt||Date.now()))}</b>`:""}${m.gamesA!=null?" "+m.gamesA+"-"+m.gamesB:""}</div><div class="pair">${escapeHtml(pairLabel(m.teamA))}</div><div class="vs">対戦</div><div class="pair">${escapeHtml(pairLabel(m.teamB))}</div>${!isLive(m)&&!matchDone(m)?`<button class="btn small" data-start="${m.id}">試合開始</button>`:""}${isLive(m)?`<button class="btn small secondary" data-end="${m.id}">試合終了</button>`:""}</div>`;
+  const mine = state.meId;
+  const mineCard = m => mine && (m.teamA.includes(mine)||m.teamB.includes(mine));
+  const pending = () => matchList().filter(x=>!matchDone(x)&&!isLive(x));
+  const bestNext = stillIds => {
+    const list = pending().map(x=>({m:x, overlap:[...x.teamA,...x.teamB].filter(id=>stillIds.has(id))})).sort((a,b)=>a.overlap.length-b.overlap.length || priorityOf(a.m)-priorityOf(b.m) || (a.m.order||0)-(b.m.order||0));
+    return list[0] || null;
+  };
+  const firstIfEnds = m => bestNext(new Set(live.filter(x=>x.id!==m.id).flatMap(x=>[...x.teamA,...x.teamB])));
+  box.innerHTML = `<div class="card">${state.cupStarted?`<div class="ok">カウント中 <b class="elapsed" data-since="${state.cupStarted}">${elapsedText(Date.now()-state.cupStarted)}</b></div>`:`<button class="btn" data-begin="1">カウント開始</button><p class="note">初戦はいま入っているに入っています。このボタンで計測を始めます。</p>`}
+    <div class="ok">${namedPlayers().length}人、${state.courts}面。控えの4人を次の対戦にまとめ、どの試合が伸びても空きが出にくいようにしています。</div>
+    <h2>いま入っている</h2><div class="grid3" style="grid-template-columns:repeat(${Number(state.courts)||3},minmax(0,1fr))">${Array.from({length:Number(state.courts)||3},(_,i)=>{ const m=live.find(x=>x.court===i+1); if(!m) return `<div class="court"><div class="note">${courtName(i)}</div><div class="note">空き</div></div>`; const cand=firstIfEnds(m); return `<div class="court"><div class="note">${courtName(i)} ${m.startedAt?`<b class="elapsed" data-since="${m.startedAt}">${elapsedText(Date.now()-m.startedAt)}</b>`:"計測前"}</div><div class="pair">${escapeHtml(pairLabel(m.teamA))}</div><div class="vs">対戦</div><div class="pair">${escapeHtml(pairLabel(m.teamB))}</div><button class="btn small secondary" data-end="${m.id}">試合終了</button><p class="note">いちばん早く終わったときの第一候補<br>${cand?escapeHtml(pairLabel(cand.m.teamA))+" 対戦 "+escapeHtml(pairLabel(cand.m.teamB))+(cand.overlap.length?"<br>あと "+cand.overlap.map(nameOf).map(escapeHtml).join("、")+" が終われば入れる":"<br>すぐ入れる"):"残り試合なし"}</p></div>`; }).join("")}</div>
+    <h2>次に入る</h2><p class="note">緑は、空いたコートにすぐ入れる試合です。ないときは、いちばん少ない待ちの対戦と、終われば入れる人を出します。</p><div class="grid3">${pending().map(m=>({m, overlap:[...m.teamA,...m.teamB].filter(playerLive)})).sort((a,b)=>a.overlap.length-b.overlap.length || priorityOf(a.m)-priorityOf(b.m)).slice(0,6).map(({m,overlap})=>{ const free=!overlap.length; return `<div class="court" style="${free?"background:#e7f6ee":""}"><div class="note">${free?"すぐ入れる":"あと"+overlap.length+"人"}</div><div class="pair">${escapeHtml(pairLabel(m.teamA))}</div><div class="vs">対戦</div><div class="pair">${escapeHtml(pairLabel(m.teamB))}</div>${free?`<button class="btn" data-start="${m.id}">試合開始</button>`:`<p class="note">終われば入れる: ${overlap.map(nameOf).map(escapeHtml).join("、")}</p>`}</div>`; }).join("") || "<div class='note'>残り試合はありません。この空きは待機で大丈夫です。</div>"}${pending().some(m=>[...m.teamA,...m.teamB].every(id=>!playerLive(id)))?"":`<div class="court"><div class="note">空きを埋める案</div><div class="pair">${fillFour()?escapeHtml(pairLabel(fillFour().teamA)):"同じペアを避けられません"}</div><div class="vs">対戦</div><div class="pair">${fillFour()?escapeHtml(pairLabel(fillFour().teamB)):""}</div><p class="note">1人ずつ入れ替えるので試合数は変わりません。同じペアになった組は出しません。</p>${fillFour()?`<button class="btn secondary" data-fill="1">この4人に変更</button>`:""}</div>`}</div>
+    <h2>待ち</h2><div class="grid3">${waiting.length?waiting.map(m=>`<div class="court" style="${mineCard(m)?"background:#fff4cc":""}"><div class="pair">${escapeHtml(pairLabel(m.teamA))}</div><div class="vs">対戦</div><div class="pair">${escapeHtml(pairLabel(m.teamB))}</div><p class="note">待ち: ${waitingReason(m).map(escapeHtml).join("、")||"前の試合"}</p><button class="btn small" data-start="${m.id}">試合開始</button></div>`).join(""):"<div class='note'>待ちはありません。</div>"}</div>
+    <p class="note">控え: ${rest.length?rest.map(p=>escapeHtml(p.name)).join("、"):"なし"}</p>
+    <p class="note">終了した試合はここから消え、結果は「結果」タブであとから入れられます。</p>
+  </div>`;
+}
+function matchDone(m) { return m.gamesA != null || m.status === "done"; }
+function playerBlocked(id) {
+  return matchList().some(m => (m.teamA.includes(id) || m.teamB.includes(id)) && !matchDone(m) && m.status === "live");
+}
+function earlierOpen(id, round) {
+  return matchList().some(m => m.round < round && (m.teamA.includes(id) || m.teamB.includes(id)) && !matchDone(m));
+}
+function matchReady(m) {
+  if (matchDone(m)) return false;
+  return [...m.teamA, ...m.teamB].every(id => !playerBlocked(id) && !earlierOpen(id, m.round));
+}
+function courtQueue(court) { return state.rounds.map(r => r.find(m => m.court === court)).filter(Boolean); }
+function nextOnCourt(court) { return courtQueue(court).find(m => !matchDone(m)); }
+function promoteMatch(matchId, court) {
+  const ready = matchList().find(m => m.id === matchId);
+  const slot = nextOnCourt(Number(court));
+  if (!ready || !slot || ready.id === slot.id) return;
+  ["teamA","teamB","gamesA","gamesB","minutes","holds","status","updatedAt"].forEach(k => {
+    const tmp = slot[k]; slot[k] = ready[k]; ready[k] = tmp;
+  });
+  slot.updatedAt = Date.now();
+  save();
+  renderNext(); renderDraw(); renderResults();
+}
+function renderNext() {
+  const sel = document.getElementById("nowRound");
+  const me = document.getElementById("mePick");
+  const box = document.getElementById("nextBox");
+  if (!state.rounds.length) { box.innerHTML = `<div class="warn">対戦表を作ってください。</div>`; return; }
+  const now = Math.min(state.nowRound||1, state.rounds.length);
+  sel.innerHTML = state.rounds.map((_,i)=>`<option value="${i+1}" ${i+1===now?"selected":""}>第${i+1}ラウンド進行中</option>`).join("");
+  me.innerHTML = `<option value="">名前を選ぶ</option>`+namedPlayers().map(p=>`<option value="${p.id}" ${p.id===state.meId?"selected":""}>${escapeHtml(p.name)}</option>`).join("");
+  const nextN = now<state.rounds.length ? now+1 : null;
+  box.innerHTML = youCard(state.meId, now) + readyBoard() + board(now, "いまのコート割", true) + (nextN?board(nextN, "次の控えと対戦", false):`<div class="ok">次の控えはありません。</div>`);
+}
+function readyBoard() {
+  const courts = Number(state.courts) || 1;
+  const cards = [];
+  for (let c = 1; c <= courts; c++) {
+    const slot = nextOnCourt(c);
+    if (!slot) { cards.push(`<div class="court"><b>${courtName(c-1)}</b><div class="note">このコートの試合は終了です。</div></div>`); continue; }
+    const ready = matchReady(slot);
+    const blocked = [...slot.teamA, ...slot.teamB].filter(id => playerBlocked(id) || earlierOpen(id, slot.round));
+    const options = matchList().filter(m => m.id !== slot.id && matchReady(m)).slice(0, 4);
+    cards.push(`<div class="court"><b>${courtName(c-1)} の次</b><div class="pair">${escapeHtml(pairLabel(slot.teamA))}</div><div class="vs">対戦</div><div class="pair">${escapeHtml(pairLabel(slot.teamB))}</div><p class="note">${ready?"4人そろっています。このまま入れます。":"前の試合が終わっていない人: "+blocked.map(nameOf).map(escapeHtml).join("、")}</p>${ready?`<button class="btn small" data-live="${slot.id}">試合開始</button>`:""}${slot.status==="live"?`<button class="btn small secondary" data-done="${slot.id}">終了にして次へ</button>`:""}${options.length&&!ready?options.map(m=>`<button class="btn small" data-promote="${m.id}" data-court="${c}">優先: ${escapeHtml(pairLabel(m.teamA))} 対戦 ${escapeHtml(pairLabel(m.teamB))}</button>`).join(""):""}</div>`);
+  }
+  return `<div class="card" style="box-shadow:none"><h2>今すぐ入れる対戦</h2><p class="note">前の試合が終わっていない人は後回しにします。空いたコートへ、4人が空いている別の対戦を優先できます。</p><div class="grid3">${cards.join("")}</div></div>`;
+}
+function youCard(id, now) {
+  if (!id) return `<div class="ok">名前を選ぶと、次に入るペアと対戦相手が出ます。</div>`;
+  const items = [];
+  state.rounds.forEach((round,i)=>{ const m=round.find(x=>x.teamA.includes(id)||x.teamB.includes(id)); if(m && i+1>=now) items.push({n:i+1,m}); });
+  if (!items.length) return `<div class="ok">${escapeHtml(nameOf(id))} の残り試合はありません。</div>`;
+  return `<div class="card" style="box-shadow:none;background:#fff8df"><b>${escapeHtml(nameOf(id))}</b>`+items.slice(0,3).map((item,idx)=>{
+    const side = item.m.teamA.includes(id)?item.m.teamA:item.m.teamB;
+    const opp = item.m.teamA.includes(id)?item.m.teamB:item.m.teamA;
+    const clock = matchClock(item.m);
+    return `<div class="note">${idx===0?(item.n===now?"いま":"次の控え"):"その次"}: 第${item.n}R ${courtName(item.m.court-1)} ${clock.start}-${clock.end}${clock.estimated?" 見込み":" 実績反映"}<br>ペア ${escapeHtml(nameOf(side.find(x=>x!==id)))} / 対戦 ${escapeHtml(pairLabel(opp))}</div>`;
+  }).join("")+`</div>`;
+}
+function board(n, title, isNow) {
+  const round = state.rounds[n-1], clock = roundClock(n);
+  const playing = new Set(round.flatMap(m=>[...m.teamA,...m.teamB]));
+  const rest = namedPlayers().filter(p=>!playing.has(p.id));
+  return `<div class="card" style="box-shadow:none"><h2>${title}</h2><p class="note">第${n}ラウンドの基準枠 ${clock.start}–${clock.end}。各コートの見込みは進行で前後します。</p><div class="grid3">${round.map(m=>`<div class="court"><div class="note">${courtName(m.court-1)} ・ ${matchClock(m).start}–${matchClock(m).end}${matchClock(m).estimated?" 見込み":" 実績反映"}</div><div class="pair">${escapeHtml(pairLabel(m.teamA))}<small>${isNow?"出場":"控えペア"}</small></div><div class="vs">${isNow?"VS":"対戦"}</div><div class="pair">${escapeHtml(pairLabel(m.teamB))}<small>${isNow?"出場":"対戦相手"}</small></div><button class="btn small" data-edit="${m.id}">結果を入力</button></div>`).join("")}</div><p class="note">控え: ${rest.length?rest.map(p=>escapeHtml(p.name||"無名")).join("、"):"なし"}</p></div>`;
+}
+function renderResults() {
+  const box = document.getElementById("resultBox");
+  if (!state.rounds.length) { box.innerHTML = `<div class="card"><div class="warn">対戦表を作ってください。</div></div>`; return; }
+  const pending = matchList().filter(m => matchDone(m) && m.gamesA == null);
+  const entered = matchList().filter(m => m.gamesA != null);
+  const row = m => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b>${escapeHtml(pairLabel(m.teamA))} 対戦 ${escapeHtml(pairLabel(m.teamB))}</b><div class="note">${m.court?courtName(m.court-1)+" ・ ":""}${m.gamesA==null?"結果未入力":m.gamesA+" - "+m.gamesB}${m.minutes?" / "+m.minutes+"分":""}</div><button class="btn small" data-edit="${m.id}">${m.gamesA==null?"結果を入れる":"結果を修正"}</button></div>`;
+  const people = namedPlayers().map(p => {
+    const mine = matchList().filter(m => m.teamA.includes(p.id) || m.teamB.includes(p.id));
+    const done = mine.filter(matchDone).length;
+    const live = mine.some(isLive);
+    const left = mine.length - done - (live ? 1 : 0);
+    return `<div class="player-line"><div class="badge">${done}</div><div><b>${escapeHtml(p.name)}</b><div class="note">${live?"試合中":"待機"} ・ 終了 ${done} / 予定 ${mine.length} ・ 残り ${left}</div></div></div>`;
+  }).join("");
+  box.innerHTML = `<div class="grid2" style="align-items:start"><div class="card"><h2>まだ結果がない試合</h2><p class="note">終了した試合の結果を、ここで入れられます。</p>${pending.length?pending.map(row).join(""):"<p class='note'>ありません。</p>"}<h2>入力済み</h2>${entered.length?entered.map(row).join(""):"<p class='note'>まだありません。</p>"}</div><div class="card"><h2>各人の試合数</h2><p class="note">数字は終了した試合数です。試合中の人は、その試合が終わるまで残りに入りません。</p>${people}</div></div>`;
+}
+function renderRank() {
+  const box = document.getElementById("rankBox");
+  const rows = ranked();
+  const timeRows = rows.slice().sort((a,b)=>b.s.minutes-a.s.minutes);
+  const mode = state.rankMode || "best";
+  const n = Number(state.bestN) || 3;
+  box.innerHTML = `<div class="card"><h2>ランキング</h2>
+    <div class="grid2">
+      <label class="field">計算方式<select id="rankMode">
+        <option value="best" ${mode==="best"?"selected":""}>上位の試合だけ</option>
+        <option value="all" ${mode==="all"?"selected":""}>全試合合計</option>
+        <option value="drop" ${mode==="drop"?"selected":""}>最悪1試合を除く</option>
+        <option value="recent" ${mode==="recent"?"selected":""}>直近の調子</option>
+        <option value="points" ${mode==="points"?"selected":""}>大会ポイント</option>
+        <option value="rate" ${mode==="rate"?"selected":""}>勝率</option>
+        <option value="diff" ${mode==="diff"?"selected":""}>得失ゲーム</option>
+        <option value="hold" ${mode==="hold"?"selected":""}>サービスキープ率</option>
+      </select></label>
+      <label class="field">採用する試合数<select id="bestN">
+        ${[1,2,3,4].map(v=>`<option value="${v}" ${n===v?"selected":""}>${v}試合</option>`).join("")}
+      </select></label>
+    </div>
+    <p class="note">${rankNote()} 結果が入るたびに更新されます。確保 ${state.startTime}–${state.reserveEnd||"16:00"}。進行を反映した終了見込み ${endTime()}${overReserve(endTime())?"（16時を超えそうです）":""}。</p><table><thead><tr><th>順位</th><th>選手</th><th>勝敗</th><th>得失</th><th>キープ率</th><th>賞</th></tr></thead><tbody>${rows.map((row,i)=>{ const s=row.s; const rec=s.entered?`${fmt(s.wins)}勝${fmt(s.losses)}敗`:"–"; const rate=s.rate==null?"–":Math.round(s.rate*100)+"% ("+s.kp+"/"+s.sv+")"; const extra = mode==="points"?` / ${s.points.toFixed(1)}pt`:mode==="rate"&&s.rateOnly!=null?` / ${Math.round(s.rateOnly*100)}%`:""; return `<tr class="${i<3?"top3":""}"><td>${i+1}</td><td>${escapeHtml(row.p.name||"無名")}</td><td>${rec}${extra}</td><td>${s.entered?(s.diff>0?"+":"")+s.diff:"–"}</td><td>${rate}</td><td>${escapeHtml(playerAward(row.p.id))}</td></tr>`; }).join("")}</tbody></table></div><div class="card"><h2>トータル試合時間ランキング</h2><p class="note">試合開始から結果保存までの時間を、その試合の4人に同じだけ足します。保存前に分数は直せます。</p><table><thead><tr><th>順位</th><th>選手</th><th>合計</th><th>試合数</th><th>平均</th></tr></thead><tbody>${timeRows.map((row,i)=>{ const n=matchList().filter(m=>matchDone(m)&&(m.teamA.includes(row.p.id)||m.teamB.includes(row.p.id))&&m.minutes!=null).length; return `<tr><td>${i+1}</td><td>${escapeHtml(row.p.name||"無名")}</td><td>${row.s.minutes?row.s.minutes+"分":"未記録"}</td><td>${n||"—"}</td><td>${n?Math.round(row.s.minutes/n)+"分":"—"}</td></tr>`; }).join("")}</tbody></table><p class="note">コート合計: ${Array.from({length:Number(state.courts)||1},(_,i)=>{ const mins=matchList().filter(m=>matchDone(m)&&m.court===i+1).reduce((s,m)=>s+Number(m.minutes||0),0); return courtName(i)+" "+mins+"分"; }).join(" / ")}</p></div>${awardCards()}`;
+}
+
+function playerAward(id) {
+  const done = matchList().filter(m => m.gamesA != null && m.gamesB != null);
+  const mine = done.filter(m => m.teamA.includes(id) || m.teamB.includes(id));
+  if (!mine.length) return "—";
+  const sv = mine.reduce((s,m)=>s+(m.holds?.[id]?.sv||0),0);
+  const kp = mine.reduce((s,m)=>s+(m.holds?.[id]?.kp||0),0);
+  const mins = mine.filter(m=>m.minutes!=null);
+  const avg = mins.length ? mins.reduce((s,m)=>s+Number(m.minutes||0),0)/mins.length : null;
+  const field = namedPlayers().map(p => {
+    const ms = done.filter(m => (m.teamA.includes(p.id)||m.teamB.includes(p.id)) && m.minutes!=null);
+    return ms.length ? ms.reduce((s,m)=>s+Number(m.minutes||0),0)/ms.length : null;
+  }).filter(v=>v!=null);
+  const med = field.length ? field.slice().sort((a,b)=>a-b)[Math.floor(field.length/2)] : null;
+  const close = mine.filter(m => Math.abs(m.gamesA-m.gamesB)<=2).length;
+  const partners = new Set();
+  mine.forEach(m => (m.teamA.includes(id)?m.teamA:m.teamB).filter(x=>x!==id).forEach(x=>partners.add(x)));
+  const wins = mine.filter(m => m.teamA.includes(id)?m.gamesA>m.gamesB:m.gamesB>m.gamesA).length;
+  const tid = state.tomitaId;
+  if (tid && id!==tid) {
+    const tMine = done.filter(m => m.teamA.includes(tid)||m.teamB.includes(tid));
+    const tsv = tMine.reduce((s,m)=>s+(m.holds?.[tid]?.sv||0),0);
+    const tkp = tMine.reduce((s,m)=>s+(m.holds?.[tid]?.kp||0),0);
+    const tAvg = tMine.filter(m=>m.minutes!=null);
+    const ta = tAvg.length ? tAvg.reduce((s,m)=>s+Number(m.minutes||0),0)/tAvg.length : null;
+    if (sv && tsv && avg!=null && ta!=null && Math.abs(kp/sv-tkp/tsv)<0.08 && Math.abs(avg-ta)<=5) return "シンクロ賞";
+  }
+  if (sv>=2 && kp/sv>=0.75) return "キープ王";
+  if (wins===mine.length && mine.length>=2) return "沈黙の勝者";
+  if (avg!=null && med!=null && avg<=med-5) return "時短賞";
+  if (avg!=null && med!=null && avg>=med+8) return "最長戦";
+  if (close>=2) return "接戦賞";
+  if (partners.size>=3) return "交流賞";
+  const ordered = mine.slice().sort((a,b)=>(a.finishedAt||0)-(b.finishedAt||0));
+  const won = m => m.teamA.includes(id)?m.gamesA>m.gamesB:m.gamesB>m.gamesA;
+  if (ordered.length>=2 && !won(ordered[0]) && ordered.slice(1).some(won)) return "挽回賞";
+  if (sv) return "キープ型";
+  return "参加賞";
+}
+function awardCards() {
+  const people = namedPlayers();
+  const done = matchList().filter(m => m.gamesA != null && m.gamesB != null);
+  const line = (title, note, rows) => `<div class="card"><h2>${title}</h2><p class="note">${note}</p>${rows.length?`<table><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.value)}</td></tr>`).join("")}</tbody></table>`:"<p class='note'>まだ出ません。</p>"}</div>`;
+  const hold = people.map(p => {
+    const sv = done.reduce((s,m)=>s+(m.holds?.[p.id]?.sv||0),0);
+    const kp = done.reduce((s,m)=>s+(m.holds?.[p.id]?.kp||0),0);
+    return { name:p.name, value: sv?Math.round(kp/sv*100)+"% ("+kp+"/"+sv+")":"—", score: sv?kp/sv: -1, sv };
+  }).filter(r=>r.sv>=2).sort((a,b)=>b.score-a.score).slice(0,5);
+  const mix = people.map(p => {
+    const mine = done.filter(m => m.teamA.includes(p.id)||m.teamB.includes(p.id));
+    const partners = new Set(), opps = new Set();
+    mine.forEach(m => {
+      const side = m.teamA.includes(p.id)?m.teamA:m.teamB;
+      const other = m.teamA.includes(p.id)?m.teamB:m.teamA;
+      side.filter(id=>id!==p.id).forEach(id=>partners.add(id));
+      other.forEach(id=>opps.add(id));
+    });
+    return { name:p.name, value:`組んだ ${partners.size} / 当たった ${opps.size}`, score: partners.size+opps.size };
+  }).filter(r=>r.score).sort((a,b)=>b.score-a.score).slice(0,5);
+  const close = people.map(p => {
+    const mine = done.filter(m => m.teamA.includes(p.id)||m.teamB.includes(p.id));
+    const n = mine.filter(m => Math.abs(m.gamesA-m.gamesB)<=2).length;
+    return { name:p.name, value:n+"試合", score:n };
+  }).filter(r=>r.score).sort((a,b)=>b.score-a.score).slice(0,5);
+  const comeback = people.map(p => {
+    const mine = done.filter(m => m.teamA.includes(p.id)||m.teamB.includes(p.id)).sort((a,b)=>(a.finishedAt||0)-(b.finishedAt||0));
+    if (mine.length<2) return null;
+    const won = m => (m.teamA.includes(p.id)?m.gamesA>m.gamesB:m.gamesB>m.gamesA);
+    const first = won(mine[0])?0:1, later = mine.slice(1).filter(won).length;
+    return { name:p.name, value:`初戦${first?"勝":"敗"} → その後 ${later}勝`, score: later-first };
+  }).filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,5);
+  const quiet = people.map(p => {
+    const mine = done.filter(m => m.teamA.includes(p.id)||m.teamB.includes(p.id));
+    if (!mine.length) return null;
+    const wins = mine.filter(m => m.teamA.includes(p.id)?m.gamesA>m.gamesB:m.gamesB>m.gamesA).length;
+    const against = mine.reduce((s,m)=>s+(m.teamA.includes(p.id)?m.gamesB:m.gamesA),0);
+    if (wins!==mine.length) return null;
+    return { name:p.name, value:`全勝 ${wins}、取られた ${against}`, score:-against };
+  }).filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,5);
+  const tid = state.tomitaId || "";
+  const tomita = people.find(p=>p.id===tid);
+  let tomitaHtml = "";
+  if (tomita) {
+    const games = {};
+    const breaks = {};
+    const minutes = {};
+    const withWin = {};
+    const withLoss = {};
+    done.filter(m => m.teamA.includes(tid)||m.teamB.includes(tid)).forEach(m => {
+      const tomitaSide = m.teamA.includes(tid)?"A":"B";
+      const foes = tomitaSide==="A"?m.teamB:m.teamA;
+      const mates = (tomitaSide==="A"?m.teamA:m.teamB).filter(id=>id!==tid);
+      const taken = tomitaSide==="A"?m.gamesB:m.gamesA;
+      foes.forEach(id => { games[id]=(games[id]||0)+taken; minutes[id]=(minutes[id]||0)+Number(m.minutes||0); });
+      const sv = m.holds?.[tid]?.sv||0, kp = m.holds?.[tid]?.kp||0;
+      if (sv>kp) foes.forEach(id => breaks[id]=(breaks[id]||0)+(sv-kp));
+      const won = tomitaSide==="A"?m.gamesA>m.gamesB:m.gamesB>m.gamesA;
+      if (won) mates.forEach(id => withWin[id]=(withWin[id]||0)+1);
+      else mates.forEach(id => withLoss[id]=(withLoss[id]||0)+1);
+    });
+    const by = (map, unit) => people.filter(p=>map[p.id]).map(p=>({name:p.name, value:map[p.id]+unit, score:map[p.id]})).sort((a,b)=>b.score-a.score).slice(0,5);
+    tomitaHtml = line("土つき賞", escapeHtml(tomita.name)+"さんと組んで、その試合に負けた人", by(withLoss,"敗"))
+      + line("ブレイク賞", escapeHtml(tomita.name)+"さんのサービスを割った回数。相手ペアの両方に入ります。", by(breaks,"回"))
+      + line("粘り賞", escapeHtml(tomita.name)+"さんとの試合時間", by(minutes,"分"))
+      + line("富田枠", escapeHtml(tomita.name)+"さんと組んで勝った回数", by(withWin,"勝"));
+  }
+  const timed = people.map(p => {
+    const mine = done.filter(m => (m.teamA.includes(p.id)||m.teamB.includes(p.id)) && m.minutes!=null);
+    const total = mine.reduce((s,m)=>s+Number(m.minutes||0),0);
+    const avg = mine.length ? total/mine.length : null;
+    return { id:p.id, name:p.name, value: avg==null?"—":Math.round(avg)+"分", score: avg==null?null:avg, n: mine.length };
+  }).filter(r=>r.n);
+  const quick = timed.slice().sort((a,b)=>a.score-b.score).slice(0,5);
+  const tomitaStat = timed.find(r=>r.id===tid);
+  const sync = tomita ? people.map(p => {
+    if (p.id===tid) return null;
+    const mine = done.filter(m => m.teamA.includes(p.id)||m.teamB.includes(p.id));
+    const sv = mine.reduce((s,m)=>s+(m.holds?.[p.id]?.sv||0),0);
+    const kp = mine.reduce((s,m)=>s+(m.holds?.[p.id]?.kp||0),0);
+    const tsv = done.reduce((s,m)=>s+(m.holds?.[tid]?.sv||0),0);
+    const tkp = done.reduce((s,m)=>s+(m.holds?.[tid]?.kp||0),0);
+    const me = timed.find(r=>r.id===p.id);
+    if (!sv || !tsv || !me || !tomitaStat) return null;
+    const gap = Math.abs(kp/sv-tkp/tsv)*100 + Math.abs(me.score-tomitaStat.score);
+    return { name:p.name, value:`差 ${Math.round(gap)}`, score:-gap };
+  }).filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,5) : [];
+  return `<div class="card"><h2>夜の賞</h2><label class="field">富田さん<select id="tomitaPick"><option value="">選ぶと土つき賞も出ます</option>${people.map(p=>`<option value="${p.id}" ${p.id===tid?"selected":""}>${escapeHtml(p.name)}</option>`).join("")}</select></label><p class="note">結果が入っている試合から計算しています。</p></div>`
+    + line("キープ王", "サービスを2本以上打った人のキープ率", hold)
+    + line("交流賞", "組んだ人数と当たった人数の合計", mix)
+    + line("接戦賞", "ゲーム差2以内で終わった試合数", close)
+    + line("挽回賞", "終了順で、初戦のあと勝ちを重ねた人", comeback)
+    + line("沈黙の勝者", "入った試合が全勝で、取られたゲームが少ない人", quiet)
+    + line("時短賞", "1試合あたりの平均時間が短い人。勝ち負けは見ません", quick)
+    + line("富田さんシンクロ賞", "キープ率と平均試合時間が富田さんに近い人。組み合わせは関係ありません", sync)
+    + tomitaHtml;
+}
+function fmt(n){ return Number.isInteger(n)?String(n):n.toFixed(1); }
+function openEditor(id) {
+  const m = matchList().find(x=>x.id===id); if(!m) return;
+  const ids = [...m.teamA, ...m.teamB];
+  const holds = {}; ids.forEach(pid=>holds[pid]=Object.assign({sv:0,kp:0}, m.holds[pid]||{}));
+  const modal = document.getElementById("modal");
+  modal.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="margin:0">${courtName(m.court-1)} 第${m.round}R</h2><button class="btn ghost small" id="closeModal">閉じる</button></div><p class="note">${escapeHtml(pairLabel(m.teamA))} 対戦 ${escapeHtml(pairLabel(m.teamB))}</p><div class="grid2"><div class="court"><b>${escapeHtml(pairLabel(m.teamA))}</b><div class="stepper"><button data-g="A" data-d="-1">-</button><b id="gA">${m.gamesA??0}</b><button data-g="A" data-d="1">+</button></div></div><div class="court"><b>${escapeHtml(pairLabel(m.teamB))}</b><div class="stepper"><button data-g="B" data-d="-1">-</button><b id="gB">${m.gamesB??0}</b><button data-g="B" data-d="1">+</button></div></div></div><p class="note" id="balance"></p><h3 style="margin-top:14px">サービス回数</h3><p class="note">4人のサービス回数の合計を、総ゲーム数と一致させてください。キープは自分のサービス回数までです。</p><div id="holdBox"></div><button class="btn ghost small" id="splitServe">サービス回数を均等に分ける</button><h3>おおよその試合時間</h3><div class="stepper"><button id="minMinus">-</button><b id="minVal">${m.minutes??state.slotMin}</b><span>分</span><button id="minPlus">+</button></div><div class="row" style="margin-top:8px" id="minChips"></div><div class="row" style="margin-top:14px"><button class="btn" id="saveMatch">保存</button></div>`;
+  const autoMin = m.startedAt ? Math.max(1, Math.round((Date.now()-(m.startedAt))/60000)) : (Number(state.slotMin)||30);
+  const draft = { gamesA:m.gamesA??0, gamesB:m.gamesB??0, minutes:m.minutes ?? autoMin, holds };
+  const totalGames = () => draft.gamesA + draft.gamesB;
+  const serveSum = () => ids.reduce((s,pid)=>s+draft.holds[pid].sv,0);
+  const fitServes = () => {
+    while (serveSum() > totalGames()) {
+      const pid = ids.slice().sort((a,b)=>draft.holds[b].sv-draft.holds[a].sv)[0];
+      if (draft.holds[pid].sv <= 0) break;
+      draft.holds[pid].sv -= 1;
+      if (draft.holds[pid].kp > draft.holds[pid].sv) draft.holds[pid].kp = draft.holds[pid].sv;
+    }
+    ids.forEach(pid=>{ if (draft.holds[pid].kp > draft.holds[pid].sv) draft.holds[pid].kp = draft.holds[pid].sv; });
+  };
+  const paint = () => {
+    fitServes();
+    const total = totalGames(), used = serveSum(), rest = total - used;
+    const bal = document.getElementById("balance");
+    bal.textContent = `総ゲーム ${total}　サービス合計 ${used}　残り ${rest}`;
+    bal.style.color = rest === 0 ? "#1d6b3a" : "#9a3412";
+    document.getElementById("holdBox").innerHTML = ids.map(pid=>{ const h=draft.holds[pid]; return `<div class="hold-row"><div><b>${escapeHtml(nameOf(pid))}</b><div class="note">${h.sv?Math.round(h.kp/h.sv*100)+"%":"–"}</div></div><div><div class="note">サービス</div><div class="stepper"><button data-h="${pid}" data-k="sv" data-d="-1">-</button><b>${h.sv}</b><button data-h="${pid}" data-k="sv" data-d="1">+</button></div></div><div><div class="note">キープ</div><div class="stepper"><button data-h="${pid}" data-k="kp" data-d="-1">-</button><b>${h.kp}</b><button data-h="${pid}" data-k="kp" data-d="1">+</button></div></div></div>`; }).join("");
+  };
+  paint();
+  document.getElementById("minChips").innerHTML = [15,20,25,30,40].map(n=>`<button class="btn ghost small" data-min="${n}">${n}分</button>`).join("");
+  document.getElementById("modalBack").classList.add("show");
+  modal.onclick = e => {
+    const el = e.target;
+    if (el.id==="closeModal") document.getElementById("modalBack").classList.remove("show");
+    if (el.dataset.g) { draft["games"+el.dataset.g]=Math.max(0, draft["games"+el.dataset.g]+Number(el.dataset.d)); document.getElementById("g"+el.dataset.g).textContent = draft["games"+el.dataset.g]; paint(); }
+    if (el.dataset.h) {
+      const h=draft.holds[el.dataset.h];
+      const d=Number(el.dataset.d);
+      if (el.dataset.k==="sv" && d>0 && serveSum()>=totalGames()) return;
+      h[el.dataset.k]=Math.max(0,h[el.dataset.k]+d);
+      if (h.kp>h.sv) h.kp=h.sv;
+      paint();
+    }
+    if (el.id==="splitServe") {
+      const total = totalGames();
+      ids.forEach((pid,i)=>{ const n=Math.floor(total/ids.length)+(i<total%ids.length?1:0); draft.holds[pid].sv=n; if(draft.holds[pid].kp>n) draft.holds[pid].kp=n; });
+      paint();
+    }
+    if (el.id==="minMinus"||el.id==="minPlus") { draft.minutes=Math.max(5, draft.minutes+(el.id==="minPlus"?1:-1)); document.getElementById("minVal").textContent=draft.minutes; }
+    if (el.dataset.min) { draft.minutes=Number(el.dataset.min); document.getElementById("minVal").textContent=draft.minutes; }
+    if (el.id==="saveMatch") {
+      if (serveSum()!==totalGames()) return alert("サービス回数の合計を総ゲーム数に合わせてください。残り "+(totalGames()-serveSum())+" 回です。");
+      m.gamesA=draft.gamesA; m.gamesB=draft.gamesB; m.minutes=draft.minutes; m.holds=draft.holds; m.status="done"; m.finishedAt=m.finishedAt||Date.now(); m.updatedAt=Date.now(); const freed=m.court; assignFreedCourt(freed); save(); document.getElementById("modalBack").classList.remove("show"); renderDraw(); renderResults(); renderRank();
+    }
+  };
+}
+function publicState() { return { players:state.players, rounds:state.rounds, quality:state.quality, courts:state.courts, roundCount:state.roundCount, rankMode:state.rankMode, bestN:state.bestN, startTime:state.startTime, slotMin:state.slotMin, reserveEnd:state.reserveEnd, nowRound:state.nowRound, updatedAt:state.updatedAt }; }
+function applyShared(data) {
+  if (!data||!data.players) return;
+  const me = state.meId;
+  Object.assign(state, data); state.meId = me; saveLocalOnly();
+  renderPlayers(); renderDraw(); renderResults(); renderRank();
+}
+function mergeGuest(data) {
+  const map = {}; (data.rounds||[]).flat().forEach(m=>map[m.id]=m);
+  matchList().forEach(m=>{ const inc=map[m.id]; if(inc && (inc.updatedAt||0)>(m.updatedAt||0)) { m.gamesA=inc.gamesA; m.gamesB=inc.gamesB; m.minutes=inc.minutes; m.holds=inc.holds||{}; m.updatedAt=inc.updatedAt; } });
+  state.updatedAt = Date.now(); saveLocalOnly(); broadcast(); renderNext(); renderResults(); renderRank(); renderDraw();
+}
+function setRoomStatus(text) { const el = document.getElementById("roomStatus"); if(el) el.textContent = text; }
+function topicOf(code) { return "tomita-tennis-cup/" + String(code || "").toUpperCase(); }
+function loadMqtt() { if (window.mqtt) return Promise.resolve(); return new Promise((resolve, reject) => { const s = document.createElement("script"); s.src = "https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"; s.onload = resolve; s.onerror = () => reject(new Error("通信ライブラリを読み込めません")); document.head.appendChild(s); }); }
+function publishState() {
+  if (!room.client || !room.client.connected || !room.code) return;
+  room.silent = true;
+  room.client.publish(topicOf(room.code), JSON.stringify(publicState()), { qos: 1, retain: true });
+  setRoomStatus("共有中 コード " + room.code + "。画面を閉じても残ります。");
+  setTimeout(() => { room.silent = false; }, 800);
+}
+function pushSync() { publishState(); }
+function applyIncoming(data) {
+  if (!data || !data.players) return;
+  const me = state.meId;
+  const takeStructure = !state.rounds.length || (data.updatedAt || 0) >= (state.updatedAt || 0);
+  if (takeStructure) {
+    state.players = data.players;
+    state.rounds = data.rounds || [];
+    state.quality = data.quality || state.quality;
+    state.courts = data.courts || state.courts; state.roundCount = data.roundCount || 0; state.rankMode = data.rankMode || state.rankMode; state.bestN = data.bestN || state.bestN;
+    state.startTime = data.startTime || state.startTime;
+    state.slotMin = data.slotMin || state.slotMin;
+    state.reserveEnd = data.reserveEnd || state.reserveEnd;
+    state.nowRound = data.nowRound || state.nowRound;
+    state.updatedAt = data.updatedAt || Date.now();
+  }
+  (data.rounds || []).flat().forEach(inc => {
+    const m = matchList().find(x => x.id === inc.id);
+    if (m && (inc.updatedAt || 0) > (m.updatedAt || 0)) {
+      m.gamesA = inc.gamesA; m.gamesB = inc.gamesB; m.minutes = inc.minutes; m.holds = inc.holds || {}; m.updatedAt = inc.updatedAt;
+    }
+  });
+  state.meId = me;
+  saveLocalOnly();
+  renderPlayers(); renderDraw(); renderNext(); renderResults(); renderRank();
+}
+async function connectRoom(code, asMaker) {
+  await loadMqtt();
+  if (room.client) { try { room.client.end(true); } catch (e) {} }
+  room.code = code;
+  room.role = asMaker ? "host" : "guest";
+  setRoomStatus("つないでいます...");
+  const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt", { clientId: "ttc-" + code + "-" + Date.now(), clean: true, reconnectPeriod: 3000 });
+  room.client = client;
+  client.on("connect", () => {
+    client.subscribe(topicOf(code), { qos: 1 });
+    setRoomStatus("共有中 コード " + code + "。画面を閉じても残ります。");
+    if (asMaker) publishState();
+  });
+  client.on("message", (topic, buf) => {
+    if (room.silent) return;
+    try { applyIncoming(JSON.parse(buf.toString())); } catch (e) {}
+  });
+  client.on("error", () => setRoomStatus("通信できません。電波を確認してもう一度参加してください。"));
+}
+async function makeRoom() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const code = Array.from({length:4}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  await connectRoom(code, true);
+  alert("同じ画面のコード: " + code + "\nこのコードを参加者に送ってください。幹事の画面は閉じて大丈夫です。");
+}
+async function joinRoom(code) {
+  code = String(code || "").trim().toUpperCase();
+  if (code.length < 4) return alert("4文字のコードを入れてください。");
+  await connectRoom(code, false);
+}
+document.getElementById("tabs").onclick = e => { if(e.target.dataset.tab) setTab(e.target.dataset.tab); };
+document.getElementById("bottom").onclick = e => { if(e.target.dataset.tab) setTab(e.target.dataset.tab); };
+document.getElementById("playerList").addEventListener("input", e=>{ const p=state.players.find(x=>x.id===e.target.dataset.player); if(p){ p.name=e.target.value; save(); } });
+document.getElementById("playerList").addEventListener("click", e=>{ if(!e.target.dataset.remove) return; state.players = state.players.filter(p=>p.id!==e.target.dataset.remove); save(); renderPlayers(); });
+document.getElementById("addPlayer").onclick = ()=>{ seq++; state.players.push({id:"p"+seq, name:"", lot:null}); save(); renderPlayers(); };
+document.getElementById("fillSample").onclick = ()=>{ state.players.forEach((p,i)=>{ if(!p.name.trim()) p.name="選手"+(i+1); }); save(); renderPlayers(); };
+document.getElementById("courtCount").onchange = e=>{ state.courts = Number(e.target.value)||3; save(); renderPlayers(); };
+document.getElementById("roundCount").onchange = e=>{ state.roundCount = Number(e.target.value)||0; save(); renderPlayers(); };
+document.getElementById("drawBox").addEventListener("change", e=>{ if(e.target.id==="drawMe"){ state.meId=e.target.value; save(); renderDraw(); } });
+document.getElementById("rankBox").addEventListener("change", e=>{
+  if (e.target.id==="rankMode") state.rankMode = e.target.value;
+  if (e.target.id==="bestN") state.bestN = Number(e.target.value)||3;
+  if (e.target.id==="tomitaPick") state.tomitaId = e.target.value;
+  save(); renderRank();
+});
+document.getElementById("startTime").onchange = e=>{ state.startTime = e.target.value; save(); renderPlayers(); renderDraw(); };
+document.getElementById("slotMin").onchange = e=>{ state.slotMin = Number(e.target.value)||30; save(); renderPlayers(); renderDraw(); };
+document.getElementById("reserveEnd").onchange = e=>{ state.reserveEnd = e.target.value || "16:00"; save(); renderPlayers(); };
+document.getElementById("genDraw").onclick = ()=>{
+  if (!namedPlayers().length) return alert("名前を入れた参加者だけで計算します。先に名前を入力してください。");
+  if (state.rounds.length && !confirm("名前が入っている参加者だけで対戦表を作り直します。入っている結果は消えます。")) return;
+  const g = generateDraw(Date.now()%100000+97);
+  if (g.error) return alert(g.error);
+  state.rounds = g.rounds; state.quality = g.quality; state.nowRound = 1;
+  state.rounds.flat().sort((a,b)=>a.order-b.order).forEach(m=>{ m.court=null; m.status="wait"; });
+  state.cupStarted = 0; state.rounds.flat().forEach(m=>{ m.court=null; m.status="wait"; m.startedAt=null; }); state.rounds.flat().sort((a,b)=>a.order-b.order).slice(0, Number(state.courts)||1).forEach((m,i)=>{ m.court=i+1; m.status="live"; m.startedAt=null; });
+  save(); renderPlayers(); setTab("draw");
+};
+document.getElementById("nowRound").onchange = e=>{ state.nowRound = Number(e.target.value); save(); renderNext(); };
+document.getElementById("mePick").onchange = e=>{ state.meId = e.target.value; save(); renderNext(); };
+document.body.addEventListener("click", e=>{
+  const hit = e.target.closest ? e.target.closest("[data-start],[data-end],[data-edit],[data-tab],[data-begin],[data-fill]") : e.target;
+  if(hit && hit.dataset && hit.dataset.tab==="rank") setTab("rank");
+  if(hit && hit.dataset && hit.dataset.edit) openEditor(hit.dataset.edit);
+  if(hit && hit.dataset && hit.dataset.begin) beginCount();
+  if(hit && hit.dataset && hit.dataset.start) startMatch(hit.dataset.start);
+  if(hit && hit.dataset && hit.dataset.fill) adoptFill();
+  if(hit && hit.dataset && hit.dataset.end) endMatch(hit.dataset.end);
+  if(e.target.dataset && e.target.dataset.promote) promoteMatch(e.target.dataset.promote, e.target.dataset.court);
+  if(e.target.dataset && e.target.dataset.start) startMatch(e.target.dataset.start);
+  if(e.target.dataset && e.target.dataset.live) { const m = matchList().find(x=>x.id===e.target.dataset.live); if(m){ m.status="live"; m.startedAt=m.startedAt||Date.now(); m.updatedAt=Date.now(); save(); renderNext(); } }
+  if(e.target.dataset && e.target.dataset.done) { const m = matchList().find(x=>x.id===e.target.dataset.done); if(m){ m.status="done"; m.updatedAt=Date.now(); save(); renderNext(); renderDraw(); } }
+});
+document.getElementById("makeRoom").onclick = ()=>makeRoom().catch(err=>setRoomStatus(String(err.message||err)));
+document.getElementById("joinRoom").onclick = ()=>joinRoom(document.getElementById("roomCodeInput").value).catch(err=>setRoomStatus(String(err.message||err)));
+document.getElementById("exportHtml").onclick = ()=>{
+  let html = "<!DOCTYPE html>\n"+document.documentElement.outerHTML;
+  const payload = JSON.stringify(state).replace(/</g,"\\u003c");
+  const openTag = "<scr"+"ipt type=\"application/json\" id=\"boot-data\">";
+  const closeTag = "</scr"+"ipt>";
+  html = html.replace(openTag+"null"+closeTag, openTag+payload+closeTag);
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([html], {type:"text/html"})); a.download = "TOMITA-TENNIS-CUP.html"; a.click();
+};
+setInterval(()=>{ document.querySelectorAll('.elapsed').forEach(el=>{ const since=Number(el.dataset.since)||Date.now(); el.textContent=elapsedText(Date.now()-since); }); }, 1000);
+load();
+document.getElementById("courtCount").value = state.courts;
+document.getElementById("roundCount").value = String(state.roundCount || 0);
+document.getElementById("startTime").value = state.startTime || "12:00";
+document.getElementById("slotMin").value = state.slotMin || 30;
+document.getElementById("reserveEnd").value = state.reserveEnd || "16:00";
+renderPlayers();
+</script>
+</body>
+</html>
