@@ -487,6 +487,7 @@ function endMatch(id) {
   save();
   renderDraw();
   renderResults();
+  renderRank();
 }
 function beginCount() {
   if (!state.rounds.length) return alert("先に対戦表を作ってください。");
@@ -836,7 +837,7 @@ function openEditor(id) {
     if (el.dataset.min) { draft.minutes=Number(el.dataset.min); document.getElementById("minVal").textContent=draft.minutes; }
     if (el.id==="saveMatch") {
       if (serveSum()!==totalGames()) return alert("サービス回数の合計を総ゲーム数に合わせてください。残り "+(totalGames()-serveSum())+" 回です。");
-      m.gamesA=draft.gamesA; m.gamesB=draft.gamesB; m.minutes=draft.minutes; m.holds=draft.holds; m.status="done"; m.finishedAt=m.finishedAt||Date.now(); m.updatedAt=Date.now(); const freed=m.court; assignFreedCourt(freed); save(); document.getElementById("modalBack").classList.remove("show"); renderDraw(); renderResults(); renderRank();
+      m.gamesA=draft.gamesA; m.gamesB=draft.gamesB; m.minutes=draft.minutes; m.holds=draft.holds; m.status="done"; m.finishedAt=m.finishedAt||Date.now(); m.updatedAt=Date.now(); save(); document.getElementById("modalBack").classList.remove("show"); renderDraw(); renderResults(); renderRank();
     }
   };
 }
