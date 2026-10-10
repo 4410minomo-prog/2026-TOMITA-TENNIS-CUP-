@@ -547,17 +547,6 @@ function renderDraw() {
     <p class="note">終了した試合はここから消え、結果は「結果」タブであとから入れられます。</p>
   </div>`;
 }
-function matchDone(m) { return m.gamesA != null || m.status === "done"; }
-function playerBlocked(id) {
-  return matchList().some(m => (m.teamA.includes(id) || m.teamB.includes(id)) && !matchDone(m) && m.status === "live");
-}
-function earlierOpen(id, round) {
-  return matchList().some(m => m.round < round && (m.teamA.includes(id) || m.teamB.includes(id)) && !matchDone(m));
-}
-function matchReady(m) {
-  if (matchDone(m)) return false;
-  return [...m.teamA, ...m.teamB].every(id => !playerBlocked(id) && !earlierOpen(id, m.round));
-}
 function courtQueue(court) { return state.rounds.map(r => r.find(m => m.court === court)).filter(Boolean); }
 function nextOnCourt(court) { return courtQueue(court).find(m => !matchDone(m)); }
 function promoteMatch(matchId, court) {
@@ -680,6 +669,7 @@ function playerAward(id) {
     if (sv && tsv && avg!=null && ta!=null && Math.abs(kp/sv-tkp/tsv)<0.08 && Math.abs(avg-ta)<=5) return "シンクロ賞";
   }
   if (sv>=2 && kp/sv>=0.75) return "キープ王";
+  if (sv>=2 && kp/sv<=0.4) return "被ブレイク王";
   if (wins===mine.length && mine.length>=2) return "沈黙の勝者";
   if (avg!=null && med!=null && avg<=med-5) return "時短賞";
   if (avg!=null && med!=null && avg>=med+8) return "最長戦";
@@ -700,6 +690,11 @@ function awardCards() {
     const kp = done.reduce((s,m)=>s+(m.holds?.[p.id]?.kp||0),0);
     return { name:p.name, value: sv?Math.round(kp/sv*100)+"% ("+kp+"/"+sv+")":"—", score: sv?kp/sv: -1, sv };
   }).filter(r=>r.sv>=2).sort((a,b)=>b.score-a.score).slice(0,5);
+  const broken = people.map(p => {
+    const sv = done.reduce((s,m)=>s+(m.holds?.[p.id]?.sv||0),0);
+    const kp = done.reduce((s,m)=>s+(m.holds?.[p.id]?.kp||0),0);
+    return { name:p.name, value:(sv-kp)+"回 ("+kp+"/"+sv+")", score:sv-kp, sv };
+  }).filter(r=>r.sv>=2 && r.score>0).sort((a,b)=>b.score-a.score).slice(0,5);
   const mix = people.map(p => {
     const mine = done.filter(m => m.teamA.includes(p.id)||m.teamB.includes(p.id));
     const partners = new Set(), opps = new Set();
@@ -778,8 +773,9 @@ function awardCards() {
     const gap = Math.abs(kp/sv-tkp/tsv)*100 + Math.abs(me.score-tomitaStat.score);
     return { name:p.name, value:`差 ${Math.round(gap)}`, score:-gap };
   }).filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,5) : [];
-  return `<div class="card"><h2>夜の賞</h2><label class="field">富田さん<select id="tomitaPick"><option value="">選ぶと土つき賞も出ます</option>${people.map(p=>`<option value="${p.id}" ${p.id===tid?"selected":""}>${escapeHtml(p.name)}</option>`).join("")}</select></label><p class="note">結果が入っている試合から計算しています。</p></div>`
+  return `<div class="card"><h2>飲み会で読む賞</h2><label class="field">富田さん<select id="tomitaPick"><option value="">選ぶと土つき賞も出ます</option>${people.map(p=>`<option value="${p.id}" ${p.id===tid?"selected":""}>${escapeHtml(p.name)}</option>`).join("")}</select></label><p class="note">勝敗の順位とは別です。飲み会で名前を読むための一覧です。</p></div>`
     + line("キープ王", "サービスを2本以上打った人のキープ率", hold)
+    + line("被ブレイク王", "自分のサービスゲームを割られた回数。2本以上打った人です", broken)
     + line("交流賞", "組んだ人数と当たった人数の合計", mix)
     + line("接戦賞", "ゲーム差2以内で終わった試合数", close)
     + line("挽回賞", "終了順で、初戦のあと勝ちを重ねた人", comeback)
@@ -844,7 +840,7 @@ function openEditor(id) {
     }
   };
 }
-function publicState() { return { players:state.players, rounds:state.rounds, quality:state.quality, courts:state.courts, roundCount:state.roundCount, rankMode:state.rankMode, bestN:state.bestN, startTime:state.startTime, slotMin:state.slotMin, reserveEnd:state.reserveEnd, nowRound:state.nowRound, updatedAt:state.updatedAt }; }
+function publicState() { return { players:state.players, rounds:state.rounds, quality:state.quality, courts:state.courts, roundCount:state.roundCount, rankMode:state.rankMode, bestN:state.bestN, startTime:state.startTime, slotMin:state.slotMin, reserveEnd:state.reserveEnd, nowRound:state.nowRound, cupStarted:state.cupStarted||0, tomitaId:state.tomitaId||"", updatedAt:state.updatedAt }; }
 function applyShared(data) {
   if (!data||!data.players) return;
   const me = state.meId;
@@ -880,6 +876,8 @@ function applyIncoming(data) {
     state.slotMin = data.slotMin || state.slotMin;
     state.reserveEnd = data.reserveEnd || state.reserveEnd;
     state.nowRound = data.nowRound || state.nowRound;
+    state.cupStarted = data.cupStarted || state.cupStarted || 0;
+    state.tomitaId = data.tomitaId || state.tomitaId || "";
     state.updatedAt = data.updatedAt || Date.now();
   }
   (data.rounds || []).flat().forEach(inc => {
