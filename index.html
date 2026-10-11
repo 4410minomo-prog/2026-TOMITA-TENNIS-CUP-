@@ -106,6 +106,9 @@
         <input id="roomCodeInput" type="text" placeholder="コード" style="max-width:120px" />
         <button class="btn secondary small" id="joinRoom">参加する</button>
         <button class="btn ghost small" id="exportHtml">HTMLを書き出す</button>
+        <button class="btn ghost small" id="exportResults">結果を書き出す</button>
+        <button class="btn ghost small" id="exportExcel">Excel</button>
+        <button class="btn ghost small" id="exportPdf">PDF</button>
       </div>
       <p class="note" id="roomStatus">まだ同じ画面にはなっていません。</p>
     </div>
@@ -335,17 +338,18 @@ function summary(id) {
   const sv=top.reduce((s,r)=>s+r.sv,0), kp=top.reduce((s,r)=>s+r.kp,0);
   const minutes = matchList().filter(m=>(m.teamA.includes(id)||m.teamB.includes(id)) && m.minutes!=null).reduce((s,m)=>s+Number(m.minutes||0),0);
   const rate = sv ? kp/sv : null;
-  const points = wins*3 + top.filter(r=>r.win===0.5).length + (gf-ga) + (rate==null?0:rate*2);
+  const points = top.reduce((s,r)=>s+(r.win===1?3:r.win===0.5?1:0),0);
   return { wins, losses:top.length-wins, diff:gf-ga, sv, kp, rate, entered:top.length, minutes, points, rateOnly: top.length?wins/top.length:null };
 }
 function ranked() {
   const mode = state.rankMode || "best";
+  const dir = state.sortDir === "asc" ? 1 : -1;
   return namedPlayers().map(p=>({p,s:summary(p.id)})).sort((a,b)=>{
-    if (b.s.entered !== a.s.entered && mode !== "rate") return b.s.entered - a.s.entered;
-    if (mode === "rate") return (b.s.rateOnly??-1)-(a.s.rateOnly??-1) || b.s.diff-a.s.diff || (b.s.rate??-1)-(a.s.rate??-1);
-    if (mode === "diff") return b.s.diff-a.s.diff || b.s.wins-a.s.wins || (b.s.rate??-1)-(a.s.rate??-1);
+    if (mode === "rate") return dir*((a.s.rateOnly??-1)-(b.s.rateOnly??-1)) || b.s.diff-a.s.diff;
+    if (mode === "diff") return dir*(a.s.diff-b.s.diff) || b.s.wins-a.s.wins;
+    if (b.s.entered !== a.s.entered) return b.s.entered - a.s.entered;
     if (mode === "hold") return (b.s.rate??-1)-(a.s.rate??-1) || b.s.wins-a.s.wins || b.s.diff-a.s.diff;
-    if (mode === "points") return b.s.points-a.s.points || b.s.wins-a.s.wins;
+    if (mode === "points") return b.s.points-a.s.points || b.s.diff-a.s.diff;
     return b.s.wins-a.s.wins || b.s.diff-a.s.diff || (b.s.rate??-1)-(a.s.rate??-1);
   });
 }
@@ -356,10 +360,10 @@ function rankNote() {
     all: "入力済みの全試合を合計。勝数、得失ゲーム、キープ率の順。",
     drop: "いちばん悪い1試合を除いた残りで計算。",
     recent: "直近"+n+"試合の調子で計算。",
-    rate: "勝率が高い順。試合数が違っても比べられます。",
-    diff: "得失ゲームが大きい順。接戦を拾った人が上がります。",
+    rate: "勝率で並べます。上の並びで高い順・低い順を切り替えます。",
+    diff: "得失ゲームで並べます。取ったゲーム数から取られたゲーム数を引いた値です。",
     hold: "サービスキープ率が高い順。サーブ回が多いほど信頼できます。",
-    points: "勝ち3点、分け1点、得失ゲーム1点、キープ率も加点する大会ポイント。"
+    points: "勝ち3点、引き分け1点。得失ゲームは同点のときだけ順位に使います。"
   };
   return notes[state.rankMode || "best"];
 }
@@ -616,7 +620,7 @@ function renderResults() {
     const left = mine.length - done - (live ? 1 : 0);
     return `<div class="player-line"><div class="badge">${done}</div><div><b>${escapeHtml(p.name)}</b><div class="note">${live?"試合中":"待機"} ・ 終了 ${done} / 予定 ${mine.length} ・ 残り ${left}</div></div></div>`;
   }).join("");
-  box.innerHTML = `<div class="grid2" style="align-items:start"><div class="card"><h2>まだ結果がない試合</h2><p class="note">終了した試合の結果を、ここで入れられます。</p>${pending.length?pending.map(row).join(""):"<p class='note'>ありません。</p>"}<h2>入力済み</h2>${entered.length?entered.map(row).join(""):"<p class='note'>まだありません。</p>"}</div><div class="card"><h2>各人の試合数</h2><p class="note">数字は終了した試合数です。試合中の人は、その試合が終わるまで残りに入りません。</p>${people}</div></div>`;
+  box.innerHTML = `<div class="row"><button class="btn small" id="exportResultsTop">結果をCSVで保存</button><button class="btn small secondary" id="exportExcelTop">Excelで保存</button><button class="btn small secondary" id="exportPdfTop">PDFで保存</button></div><div class="grid2" style="align-items:start"><div class="card"><h2>まだ結果がない試合</h2><p class="note">終了した試合の結果を、ここで入れられます。</p>${pending.length?pending.map(row).join(""):"<p class='note'>ありません。</p>"}<h2>入力済み</h2>${entered.length?entered.map(row).join(""):"<p class='note'>まだありません。</p>"}</div><div class="card"><h2>各人の試合数</h2><p class="note">数字は終了した試合数です。試合中の人は、その試合が終わるまで残りに入りません。</p>${people}</div></div>`;
 }
 function renderRank() {
   const box = document.getElementById("rankBox");
@@ -625,6 +629,11 @@ function renderRank() {
   const mode = state.rankMode || "best";
   const n = Number(state.bestN) || 3;
   box.innerHTML = `<div class="card"><h2>ランキング</h2>
+    <div class="row">
+      <button class="btn small ${mode==="rate"?"on":""}" data-rank="rate">勝率で見る</button>
+      <button class="btn small secondary ${mode==="diff"?"on":""}" data-rank="diff">得失で見る</button>
+    </div>
+    <p class="note">勝率の順位と、得失ゲームの順位を切り替えられます。どちらも高い順です。</p>
     <div class="grid2">
       <label class="field">計算方式<select id="rankMode">
         <option value="best" ${mode==="best"?"selected":""}>上位の試合だけ</option>
@@ -934,6 +943,7 @@ document.getElementById("rankBox").addEventListener("change", e=>{
   if (e.target.id==="rankMode") state.rankMode = e.target.value;
   if (e.target.id==="bestN") state.bestN = Number(e.target.value)||3;
   if (e.target.id==="tomitaPick") state.tomitaId = e.target.value;
+  if (e.target.id==="sortDir") state.sortDir = e.target.value;
   save(); renderRank();
 });
 document.getElementById("startTime").onchange = e=>{ state.startTime = e.target.value; save(); renderPlayers(); renderDraw(); };
@@ -952,13 +962,17 @@ document.getElementById("genDraw").onclick = ()=>{
 document.getElementById("nowRound").onchange = e=>{ state.nowRound = Number(e.target.value); save(); renderNext(); };
 document.getElementById("mePick").onchange = e=>{ state.meId = e.target.value; save(); renderNext(); };
 document.body.addEventListener("click", e=>{
-  const hit = e.target.closest ? e.target.closest("[data-start],[data-end],[data-edit],[data-tab],[data-begin],[data-fill]") : e.target;
+  const hit = e.target.closest ? e.target.closest("[data-start],[data-end],[data-edit],[data-tab],[data-begin],[data-fill],[data-rank]") : e.target;
   if(hit && hit.dataset && hit.dataset.tab==="rank") setTab("rank");
   if(hit && hit.dataset && hit.dataset.edit) openEditor(hit.dataset.edit);
+  if(hit && hit.dataset && hit.dataset.rank){ state.rankMode = hit.dataset.rank; save(); renderRank(); }
   if(hit && hit.dataset && hit.dataset.begin) beginCount();
   if(hit && hit.dataset && hit.dataset.start) startMatch(hit.dataset.start);
   if(hit && hit.dataset && hit.dataset.fill) adoptFill();
   if(hit && hit.dataset && hit.dataset.end) endMatch(hit.dataset.end);
+  if(["exportResultsTop","exportResults"].includes(e.target.id)) exportResults();
+  if(["exportExcelTop","exportExcel"].includes(e.target.id)) exportExcel();
+  if(["exportPdfTop","exportPdf"].includes(e.target.id)) exportPdf();
   if(e.target.dataset && e.target.dataset.promote) promoteMatch(e.target.dataset.promote, e.target.dataset.court);
   if(e.target.dataset && e.target.dataset.start) startMatch(e.target.dataset.start);
   if(e.target.dataset && e.target.dataset.live) { const m = matchList().find(x=>x.id===e.target.dataset.live); if(m){ m.status="live"; m.startedAt=m.startedAt||Date.now(); m.updatedAt=Date.now(); save(); renderNext(); } }
@@ -966,6 +980,64 @@ document.body.addEventListener("click", e=>{
 });
 document.getElementById("makeRoom").onclick = ()=>makeRoom().catch(err=>setRoomStatus(String(err.message||err)));
 document.getElementById("joinRoom").onclick = ()=>joinRoom(document.getElementById("roomCodeInput").value).catch(err=>setRoomStatus(String(err.message||err)));
+
+
+function resultRows() {
+  return {
+    matches: matchList().map(m => ({
+      court: m.court?courtName(m.court-1):"",
+      a: pairLabel(m.teamA), b: pairLabel(m.teamB),
+      ga: m.gamesA??"", gb: m.gamesB??"", min: m.minutes??"",
+      holds: [...m.teamA, ...m.teamB].map(id => nameOf(id)+":"+(m.holds?.[id]? (m.holds[id].kp||0)+"/"+ (m.holds[id].sv||0) : "未")).join(" / ")
+    })),
+    players: namedPlayers().map(p => {
+      const s = summary(p.id);
+      const recs = allRecords(p.id);
+      const gf = recs.reduce((n,r)=>n+r.gf,0), ga = recs.reduce((n,r)=>n+r.ga,0);
+      return { name:p.name, played:recs.length, wins:s.wins, losses:s.losses, gf, ga, diff:gf-ga, hold:s.rate==null?"":Math.round(s.rate*100)+"%", minutes:s.minutes||"", award:playerAward(p.id) };
+    })
+  };
+}
+function xmlCell(v){ return `<Cell><Data ss:Type="String">${String(v??"").replace(/&/g,"&").replace(/</g,"<")}</Data></Cell>`; }
+function exportExcel(){
+  if (!state.rounds.length) return alert("まだ対戦表がありません。");
+  const data = resultRows();
+  const sheet = (name, headers, rows) => `<Worksheet ss:Name="${name}"><Table>${headers.map(h=>xmlCell(h)).join("")}${rows.map(r=>"<Row>"+r.map(xmlCell).join("")+"</Row>").join("")}</Table></Worksheet>`;
+  const xml = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">${sheet("試合",["コート","ペアA","ゲームA","ゲームB","ペアB","時間","サービスキープ"], data.matches.map(m=>[m.court,m.a,m.ga,m.gb,m.b,m.min,m.holds]))}${sheet("選手",["選手","試合数","勝","敗","取得ゲーム","失ゲーム","得失","キープ率","合計時間","賞"], data.players.map(p=>[p.name,p.played,p.wins,p.losses,p.gf,p.ga,p.diff,p.hold,p.minutes,p.award]))}</Workbook>`;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([xml], {type:"application/vnd.ms-excel"}));
+  a.download = "TOMITA-TENNIS-CUP-results.xls";
+  a.click();
+}
+function exportPdf(){
+  if (!state.rounds.length) return alert("まだ対戦表がありません。");
+  const data = resultRows();
+  const w = window.open("", "_blank");
+  if (!w) return alert("ポップアップを許可するとPDF用の印刷画面が開きます。");
+  w.document.write(`<title>TOMITA TENNIS CUP 結果</title><style>body{font-family:sans-serif}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{border:1px solid #ccc;padding:6px;font-size:12px}h1{font-size:20px}</style><h1>TOMITA TENNIS CUP 結果詳細</h1><h2>試合</h2><table><tr><th>コート</th><th>ペアA</th><th>スコア</th><th>ペアB</th><th>時間</th><th>キープ</th></tr>${data.matches.map(m=>`<tr><td>${m.court}</td><td>${m.a}</td><td>${m.ga} - ${m.gb}</td><td>${m.b}</td><td>${m.min}</td><td>${m.holds}</td></tr>`).join("")}</table><h2>選手</h2><table><tr><th>選手</th><th>試合</th><th>勝敗</th><th>取得</th><th>失</th><th>得失</th><th>キープ</th><th>時間</th><th>賞</th></tr>${data.players.map(p=>`<tr><td>${p.name}</td><td>${p.played}</td><td>${p.wins}-${p.losses}</td><td>${p.gf}</td><td>${p.ga}</td><td>${p.diff}</td><td>${p.hold}</td><td>${p.minutes}</td><td>${p.award}</td></tr>`).join("")}</table>`);
+  w.document.close();
+  w.focus();
+  w.print();
+}
+function csvCell(v){ return '"'+String(v??"").replace(/"/g,'""')+'"'; }
+function exportResults(){
+  if (!state.rounds.length) return alert("まだ対戦表がありません。");
+  const lines = ["種別,コート,ペアA,ゲームA,ゲームB,ペアB,時間分"];
+  matchList().forEach(m => lines.push(["試合", m.court?courtName(m.court-1):"", pairLabel(m.teamA), m.gamesA??"", m.gamesB??"", pairLabel(m.teamB), m.minutes??""].map(csvCell).join(",")));
+  lines.push("");
+  lines.push(["選手","終了試合","予定","勝","敗","得失","キープ率","合計時間","賞"].map(csvCell).join(","));
+  namedPlayers().forEach(p => {
+    const s = summary(p.id);
+    const mine = matchList().filter(m => m.teamA.includes(p.id)||m.teamB.includes(p.id));
+    lines.push([p.name, mine.filter(matchDone).length, mine.length, s.wins, s.losses, s.diff, s.rate==null?"":Math.round(s.rate*100)+"%", s.minutes||"", playerAward(p.id)].map(csvCell).join(","));
+  });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv"}));
+  a.download = "TOMITA-TENNIS-CUP-results.csv";
+  a.click();
+}
+document.getElementById("exportResults").onclick = exportResults;
+document.getElementById("exportExcel") && (document.getElementById("exportExcel").onclick = exportExcel);
 document.getElementById("exportHtml").onclick = ()=>{
   let html = "<!DOCTYPE html>\n"+document.documentElement.outerHTML;
   const payload = JSON.stringify(state).replace(/</g,"\\u003c");
